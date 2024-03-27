@@ -1,7 +1,37 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(AppDataProvider(appData: AppData(), child: MainApp()));
+}
+
+class AppDataProvider extends InheritedWidget {
+  const AppDataProvider(
+      {required this.appData, required super.child, super.key});
+
+  final AppData appData;
+
+  static AppDataProvider? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<AppDataProvider>();
+
+  @override
+  bool updateShouldNotify(InheritedWidget oldWidget) {
+    return true;
+  }
+}
+
+class AppData {
+  int? age;
+  String? name;
+
+  AppData({this.name, this.age});
+
+  setAge(int? age) {
+    this.age = age;
+  }
+
+  setName(String name) {
+    this.name = name;
+  }
 }
 
 class MainApp extends StatelessWidget {
@@ -39,6 +69,9 @@ class FirstScreenState extends State<FirstScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      const Text("Информация о вас:"),
+                      Text("Имя: ${AppDataProvider.of(context)?.appData.name}"),
+                      Text("Возраст: ${AppDataProvider.of(context)?.appData.age}"),
                       Container(
                           margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
                           child: const Text("Представьтесь",
@@ -73,11 +106,12 @@ class FirstScreenState extends State<FirstScreen> {
                       ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
+                              AppDataProvider.of(context)?.appData.setName(_controller.text);
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => SecondScreen(
-                                          name: _controller.text)));
+                                      builder: (context) =>
+                                          const SecondScreen()));
                             }
                           },
                           child: const Text("Войти"))
@@ -88,22 +122,20 @@ class FirstScreenState extends State<FirstScreen> {
 }
 
 class SecondScreen extends StatefulWidget {
-  final String name;
-  const SecondScreen({super.key, required this.name});
+  const SecondScreen({super.key});
 
   @override
   State<StatefulWidget> createState() {
-    return SecondScreenState(name: name);
+    return SecondScreenState();
   }
 }
 
 class SecondScreenState extends State<SecondScreen> {
-  final String name;
   final _formKey = GlobalKey<FormState>();
   final _controller = TextEditingController();
   DateTime? _date;
 
-  SecondScreenState({required this.name});
+  SecondScreenState();
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +150,8 @@ class SecondScreenState extends State<SecondScreen> {
                       children: [
                         Container(
                             margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
-                            child: Text("$name, добро пожаловать!",
+                            child: Text(
+                                "${AppDataProvider.of(context)?.appData.name}, добро пожаловать!",
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold))),
                         Container(
@@ -154,7 +187,8 @@ class SecondScreenState extends State<SecondScreen> {
                                     lastDate: DateTime.now());
                                 if (_date != null) {
                                   setState(() {
-                                    _controller.text = _date.toString().split(" ")[0];
+                                    _controller.text =
+                                        _date.toString().split(" ")[0];
                                   });
                                 }
                               },
@@ -162,16 +196,15 @@ class SecondScreenState extends State<SecondScreen> {
                         ElevatedButton(
                             onPressed: () {
                               if (_formKey.currentState!.validate()) {
+                                AppDataProvider.of(context)?.appData.setAge(
+                                    (DateTime.now().difference(_date!).inDays /
+                                            365)
+                                        .floor());
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => ThirdScreen(
-                                            name: name,
-                                            age: (DateTime.now()
-                                                        .difference(_date!)
-                                                        .inDays /
-                                                    365)
-                                                .floor())));
+                                        builder: (context) =>
+                                            const ThirdScreen()));
                               }
                             },
                             child: const Text("Рассчитать возраст"))
@@ -181,10 +214,7 @@ class SecondScreenState extends State<SecondScreen> {
 }
 
 class ThirdScreen extends StatelessWidget {
-  final String name;
-  final int age;
-
-  const ThirdScreen({required this.name, required this.age, super.key});
+  const ThirdScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +223,8 @@ class ThirdScreen extends StatelessWidget {
           child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text("$name, вам $age лет",
+          Text(
+              "${AppDataProvider.of(context)?.appData.name}, вам ${AppDataProvider.of(context)?.appData.age} лет",
               style:
                   const TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
           ElevatedButton(
