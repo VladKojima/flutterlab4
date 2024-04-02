@@ -58,6 +58,9 @@ class FirstScreenState extends State<FirstScreen> {
   final _formKey = GlobalKey<FormState>();
   final _controller = TextEditingController();
 
+  int? _age;
+  String? _name;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,9 +72,14 @@ class FirstScreenState extends State<FirstScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text("Информация о вас:"),
-                      Text("Имя: ${AppDataProvider.of(context)?.appData.name}"),
-                      Text("Возраст: ${AppDataProvider.of(context)?.appData.age}"),
+                      Column(
+                          children: (_age != null)
+                              ? [
+                                  const Text("Информация о вас:"),
+                                  Text("Имя: $_name"),
+                                  Text("Возраст: $_age")
+                                ]
+                              : []),
                       Container(
                           margin: const EdgeInsets.fromLTRB(0, 0, 0, 40),
                           child: const Text("Представьтесь",
@@ -106,12 +114,22 @@ class FirstScreenState extends State<FirstScreen> {
                       ElevatedButton(
                           onPressed: () {
                             if (_formKey.currentState!.validate()) {
-                              AppDataProvider.of(context)?.appData.setName(_controller.text);
+                              AppDataProvider.of(context)
+                                  ?.appData
+                                  .setName(_controller.text);
                               Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const SecondScreen()));
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const SecondScreen()))
+                                  .then((value) => setState(() {
+                                        _name = AppDataProvider.of(context)
+                                            ?.appData
+                                            .name;
+                                        _age = AppDataProvider.of(context)
+                                            ?.appData
+                                            .age;
+                                      }));
                             }
                           },
                           child: const Text("Войти"))
